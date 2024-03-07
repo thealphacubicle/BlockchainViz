@@ -1,10 +1,18 @@
-import json
-import pymongo
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 import requests
+import os
+
+from dotenv import load_dotenv
+
 
 class ETLPipeline:
     def __init__(self):
         self.API_URL = 'https://api.blockchair.com/bitcoin/dashboards/blocks/{}'
+        load_dotenv('keys.env')
+        self.MONGO_USERNAME, self.MONGO_PWD = os.environ.get('USERNAME'), os.environ.get('PASSWORD')
+        self.MONGO_URI = (f"mongodb+srv://{self.MONGO_USERNAME}:{self.MONGO_PWD}@blockchainviz.xvegyms.mongodb.net"
+                          f"/?retryWrites=true&w=majority&appName=BlockchainViz")
 
     def extract_batch_data(self, block_numbers):
         """
@@ -30,6 +38,27 @@ class ETLPipeline:
                     # TODO: Log missing block data
                     print(f"Block {block_num} data is missing")
                     continue
+
+        except Exception as e:
+            print(e)
+            return 500
+
+    def _create_db_connection(self):
+        """
+        Create a connection to the MongoDB database
+        :return: Connection object
+        """
+        try:
+            client = MongoClient(self.MONGO_URI, server_api=ServerApi('1'))
+
+            # Send a ping to confirm a successful connection
+            try:
+                client.admin.command('ping')
+                print("Pinged your deployment. You successfully connected to MongoDB!")
+            except Exception as e:
+                print(e)
+
+            return client
 
         except Exception as e:
             print(e)
@@ -67,12 +96,16 @@ class ETLPipeline:
     def store_batch_data(self, data):
         """
         Store the data in the database
-        :param data: Data to store
+        :param data: Data to store -> should be list of dictionaries
         :return: Status of the operation
         """
+        # Make sure the data is a list
+        if not isinstance(data, list):
+            return 500
+
         try:
             # Insert data to the database
-            pass
+            self._create_db_connection()['BlockchainViz']['block_data'].insert_many(data)
 
             return 200
 
@@ -84,7 +117,7 @@ class ETLPipeline:
         Run the ETL pipeline
         :return: Status code of the operation
         """
-        blocks = [200000, 200001, 200002, 200003]
+        blocks = [100000, 100001, 100002, 100003, 100004, 100005, 100006, 100007, 100008, 100009]
         MAX_BATCH_SIZE = 1440  # 1 day worth of blocks
 
         try:
@@ -118,14 +151,10 @@ class ETLPipeline:
             return 500
 
 
-
-
-
-
-## Main function
 def main():
     pipeline = ETLPipeline()
     pipeline.run_pipeline()
+
 
 if __name__ == '__main__':
     main()
