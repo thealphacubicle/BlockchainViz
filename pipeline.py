@@ -2,6 +2,8 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import requests
 import os
+import asyncio
+import time
 
 from dotenv import load_dotenv
 
@@ -33,6 +35,15 @@ class ETLPipeline:
         # Create a generator to return the data in batches
         for i in range(0, len(block_numbers), batch_size):
             yield block_numbers[i:i + batch_size]
+
+    async def _create_batch_query_async(self, block_numbers, batch_size=10):
+        """
+        Wrapper for the _create_batch_query method to run it asynchronously
+        :param block_numbers: List of block numbers to get data for
+        :param batch_size: Size of the batch
+        :return: Batch query
+        """
+        return await asyncio.to_thread(self._create_batch_query, block_numbers, batch_size)
 
     def _get_request_cost(self, api_response):
         """
@@ -80,6 +91,14 @@ class ETLPipeline:
 
             self.total_batches_processed += 1
 
+    async def extract_batch_data_async(self, block_numbers):
+        """
+        Wrapper for the extract_batch_data method to run it asynchronously
+        :param block_numbers: List of block numbers to get data for
+        :return: Block data as a dictionary
+        """
+        return await asyncio.to_thread(self.extract_batch_data, block_numbers)
+
     def _print_process_info(self):
         """
         Print details of the process completed
@@ -115,6 +134,13 @@ class ETLPipeline:
             raise e
             return 500
 
+    async def _create_db_connection_async(self):
+        """
+        Wrapper for the _create_db_connection method to run it asynchronously
+        :return: Connection object
+        """
+        return await asyncio.to_thread(self._create_db_connection)
+
     def process_block(self, block_data):
         """
         Process the item and save it to the database
@@ -143,6 +169,14 @@ class ETLPipeline:
             raise e
             return 500
 
+    async def process_block_async(self, block_data):
+        """
+        Wrapper for the process_block method to run it asynchronously
+        :param block_data: Block data to process
+        :return: Status of the operation
+        """
+        return await asyncio.to_thread(self.process_block, block_data)
+
     # TODO: Implement the store_batch_data method to store the data in the database
     def store_batch_data(self, data):
         """
@@ -163,6 +197,14 @@ class ETLPipeline:
         except Exception as e:
             raise e
             return 500
+
+    async def store_batch_data_async(self, data):
+        """
+        Wrapper for the store_batch_data method to run it asynchronously
+        :param data: Data to store -> should be list of dictionaries
+        :return: Status of the operation
+        """
+        return await asyncio.to_thread(self.store_batch_data, data)
 
     def run_pipeline(self, block_start, block_end):
         """
@@ -213,11 +255,26 @@ class ETLPipeline:
             raise e
             return 500
 
+    async def run_pipeline_async(self, block_start, block_end):
+        """
+        Wrapper for the run_pipeline method to run it asynchronously
+        :param block_start: Start block number
+        :param block_end: End block number (exclusive)
+        :return: Status code of the operation
+        """
+        return await asyncio.to_thread(self.run_pipeline, block_start, block_end)
 
-def main():
+
+async def main():
     pipeline = ETLPipeline()
-    pipeline.run_pipeline(500481, 500581)
+    # st = time.time()
+    # pipeline.run_pipeline(500681, 500781) ----> Takes 41.928s
+    # print("Time taken (synchronously): ", time.time() - st)
+
+    st = time.time()
+    await pipeline.run_pipeline_async(503181+1200, 503181+1800) #----> Takes 39.640s
+    print("Time taken (asynchronously): ", time.time() - st)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
