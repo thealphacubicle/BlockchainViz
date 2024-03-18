@@ -7,8 +7,7 @@ The front-end consists of Tableau dashboards that visualize the blockchain data.
 The back-end is a Python script that fetches the blockchain data and is stored inside
 a MongoDB Atlas instance. 
 
-I have also written a Medium article that explains the project in more detail. See [here]
-(https://medium.com/@srihari.raman/a-real-time-discovery-of-bitcoin-through-tableau-345c94681cc1)
+I have also written a Medium article that explains the project in more detail. See [here](https://medium.com/@srihari.raman/a-real-time-discovery-of-bitcoin-through-tableau-345c94681cc1)
 for more details!
 
 ## Collecting the Data
