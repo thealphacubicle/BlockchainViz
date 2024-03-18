@@ -21,3 +21,41 @@ looks like this:
 ## Collaborators
 Currently, the project is not open for collaboration. However, the project will be open
 in the near future to allow for more contributors and added functionality.
+
+---
+# Installation
+#### Step 1: Clone the repository using SSH
+```bash
+git clone git@github.com:thealphacubicle/BlockchainViz.git 
+```
+
+#### Step 2: Create a virtual environment (preferably with Conda)
+```bash
+conda create -n blockchainviz python=3.8
+```
+
+#### Step 3: Activate the virtual environment
+```bash
+conda activate blockchainviz
+```
+
+#### Step 4: Install the dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### Step 5: Create a `keys.env` file in the root directory and add the following keys:
+```bash
+MONGO_USERNAME=<your_mongo_username>
+MONGO_PWD = <your_mongo_password>
+```
+
+#### Step 6: Run the `pipeline.py` script
+```bash
+python pipeline.py
+```
+
+#### Step 7: Open the Tableau dashboards and Connect to your MongoDB Atlas DB Instance
+- You will need to install the MongoDB ODBC driver to connect to the MongoDB Atlas instance (see [here](https://www.youtube.com/watch?v=vEgIB44kKL0)).
+- Once the driver is installed, open Tableau and connect to the MongoDB Atlas instance using the ODBC driver.
+- You can now visualize the data using the Tableau dashboards!
